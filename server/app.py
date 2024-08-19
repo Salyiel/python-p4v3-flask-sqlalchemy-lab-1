@@ -3,6 +3,7 @@
 
 from flask import Flask, make_response
 from flask_migrate import Migrate
+from flask import Flask, jsonify
 
 from models import db, Earthquake
 
@@ -34,6 +35,23 @@ def earthquake_by_id(id):
         status = 404
 
     return make_response(body, status)
+
+@app.route('/earthquakes/magnitude/<float:magnitude>')
+def get_earthquakes_by_magnitude(magnitude):
+    # Query earthquakes with magnitude >= parameter
+    earthquakes = Earthquake.query.filter(Earthquake.magnitude >= magnitude).all()
+    
+    # Prepare the response
+    quake_list = [{
+        "id": quake.id,
+        "location": quake.location,
+        "magnitude": quake.magnitude,
+        "year": quake.year
+    } for quake in earthquakes]
+
+    # Return response with count and list of earthquakes
+    return jsonify({"count": len(earthquakes), "quakes": quake_list}), 200
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
